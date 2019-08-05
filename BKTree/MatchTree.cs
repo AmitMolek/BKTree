@@ -18,6 +18,10 @@ namespace BKTree{
 			}
 		}
 
+        public void add(List<T> lst) {
+            foreach (T obj in lst) this.add(obj);
+        }
+
 		public void clear() {
 			root.children.Clear();
 			root = null;
@@ -144,12 +148,14 @@ namespace BKTree{
 				int distanceAtNode = Distance.calculate(term, this.term);
 
 				if (distanceAtNode == thershold) {
-					collected.Add(this.term, distanceAtNode);
+                    if (!collected.ContainsKey(this.term))
+                        collected.Add(this.term, distanceAtNode);
 					return;
 				}
 
 				if (distanceAtNode < thershold) {
-					collected.Add(this.term, distanceAtNode);
+                    if (!collected.ContainsKey(this.term))
+					    collected.Add(this.term, distanceAtNode);
 				}
 
 				for (int score = distanceAtNode - thershold; score <= thershold + distanceAtNode; score++) {
