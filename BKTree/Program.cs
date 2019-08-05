@@ -46,7 +46,25 @@ namespace BKTree{
                 Console.WriteLine("Input: " + inputString);
                 if (inputString.Length == 0) continue;
 
-                Dictionary<string, int> matches = m.query(inputString, inputString.Length + 1);
+                CancellationTokenSource ctSource = new CancellationTokenSource();
+                CancellationToken ct = ctSource.Token;
+
+                //Dictionary<string, int> matches = m.query(inputString, inputString.Length + 1);
+                Task<Dictionary<string, int>> searchTask = Task<Dictionary<string, int>>.Run(async () => {
+                    if (ct.IsCancellationRequested) {
+                        Console.WriteLine("Cancalled");
+                        return new Dictionary<string, int>();
+                    }
+                    return await m.query(inputString, inputString.Length + 1);
+                });
+
+                while (!searchTask.IsCompleted) {
+                    if (Console.KeyAvailable) {
+                        Console.WriteLine("kakkkk999999");
+                        ctSource.Cancel();
+                    }
+                }
+                Dictionary<string, int> matches = searchTask.Result;
 
                 // Using LINQ sorts the dictionary by value
                 var items = from pair in matches orderby pair.Value ascending select pair;

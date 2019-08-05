@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace BKTree{
     class MatchTree<T>{
@@ -27,9 +28,9 @@ namespace BKTree{
 			root = null;
 		}
 
-		public Dictionary<T, int> query(T searchObject, int thershold) {
+		public async Task<Dictionary<T, int>> query(T searchObject, int thershold) {
 			Dictionary<T, int> matches = new Dictionary<T, int>();
-			root.query(searchObject, thershold, matches);
+			await root.query(searchObject, thershold, matches);
 			return matches;
 		}
 
@@ -144,6 +145,28 @@ namespace BKTree{
 				return bestTerm;
 			}
 
+			public async Task query(T term, int thershold, Dictionary<T, int> collected) {
+				int distanceAtNode = Distance.calculate(term, this.term);
+
+				if (distanceAtNode == thershold) {
+                    if (!collected.ContainsKey(this.term))
+                        collected.Add(this.term, distanceAtNode);
+					return;
+				}
+
+				if (distanceAtNode < thershold) {
+                    if (!collected.ContainsKey(this.term))
+					    collected.Add(this.term, distanceAtNode);
+				}
+
+				for (int score = distanceAtNode - thershold; score <= thershold + distanceAtNode; score++) {
+					BKNode child = children.GetValueOrDefault(score);
+					if (child != null) {
+						await child.query(term, thershold, collected);
+					}
+				}
+			}
+            /*
 			public void query(T term, int thershold, Dictionary<T, int> collected) {
 				int distanceAtNode = Distance.calculate(term, this.term);
 
@@ -165,6 +188,7 @@ namespace BKTree{
 					}
 				}
 			}
+            */
 		}
     }
 }
