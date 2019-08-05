@@ -51,29 +51,29 @@ namespace BKTree{
 
                 //Dictionary<string, int> matches = m.query(inputString, inputString.Length + 1);
                 Task<Dictionary<string, int>> searchTask = Task<Dictionary<string, int>>.Run(async () => {
-                    if (ct.IsCancellationRequested) {
-                        Console.WriteLine("Cancalled");
-                        return new Dictionary<string, int>();
-                    }
-                    return await m.query(inputString, inputString.Length + 1);
+                    return await m.query(inputString, inputString.Length + 1, ctSource);
                 });
 
                 while (!searchTask.IsCompleted) {
                     if (Console.KeyAvailable) {
-                        Console.WriteLine("kakkkk999999");
+                        //Console.WriteLine("kakkkk999999");
                         ctSource.Cancel();
                     }
                 }
-                Dictionary<string, int> matches = searchTask.Result;
+                Dictionary<string, int> matches = null;
+                if (searchTask.IsCompletedSuccessfully)
+                    matches = searchTask.Result;
 
-                // Using LINQ sorts the dictionary by value
-                var items = from pair in matches orderby pair.Value ascending select pair;
-                //foreach (KeyValuePair<string, int> p in items) {
-                //    Console.WriteLine(p.Key + "[" + p.Value + "]");
-                //}
-                for (int i = 0; i < 3; i++)
-                    if (items.Count() - 1 >= i)
-                        Console.WriteLine("- " + items.ElementAt(i).Key);
+                if (matches != null) {
+                    // Using LINQ sorts the dictionary by value
+                    var items = from pair in matches orderby pair.Value ascending select pair;
+                    //foreach (KeyValuePair<string, int> p in items) {
+                    //    Console.WriteLine(p.Key + "[" + p.Value + "]");
+                    //}
+                    for (int i = 0; i < 3; i++)
+                        if (items.Count() - 1 >= i)
+                            Console.WriteLine("- " + items.ElementAt(i).Key);
+                }
             }
 		}
     }

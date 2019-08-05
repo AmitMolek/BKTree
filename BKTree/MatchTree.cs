@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace BKTree{
     class MatchTree<T>{
@@ -28,9 +29,10 @@ namespace BKTree{
 			root = null;
 		}
 
-		public async Task<Dictionary<T, int>> query(T searchObject, int thershold) {
+		public async Task<Dictionary<T, int>> query(T searchObject, int thershold, CancellationTokenSource cts) {
 			Dictionary<T, int> matches = new Dictionary<T, int>();
-			await root.query(searchObject, thershold, matches);
+            await root.query(searchObject, thershold, matches, cts.Token);
+            if (cts.Token.IsCancellationRequested) Console.WriteLine("Cancallation Requested");
 			return matches;
 		}
 
@@ -145,7 +147,7 @@ namespace BKTree{
 				return bestTerm;
 			}
 
-			public async Task query(T term, int thershold, Dictionary<T, int> collected) {
+			public async Task query(T term, int thershold, Dictionary<T, int> collected, CancellationToken ct) {
 				int distanceAtNode = Distance.calculate(term, this.term);
 
 				if (distanceAtNode == thershold) {
@@ -162,7 +164,8 @@ namespace BKTree{
 				for (int score = distanceAtNode - thershold; score <= thershold + distanceAtNode; score++) {
 					BKNode child = children.GetValueOrDefault(score);
 					if (child != null) {
-						await child.query(term, thershold, collected);
+                        ct.ThrowIfCancellationRequested();
+						await child.query(term, thershold, collected, ct);
 					}
 				}
 			}
